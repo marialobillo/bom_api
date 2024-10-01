@@ -1,0 +1,44 @@
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Output of the Go compiler
+*.out
+
+# Go workspace files
+*.log
+*.test
+*.prof
+*.sum
+*.mod
+
+# Vendor directory (when using Go modules)
+vendor/
+
+# Dependency directories
+node_modules/
+tmp/
+.cache/
+
+# IDE/editor specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# macOS specific files
+.DS_Store
+
+# Docker-related files
+docker-compose.override.yml
+
+# Log files
+*.log
+
+# GoFiber specific
+fiber.lock
+
+# Config and environment files
+.env
