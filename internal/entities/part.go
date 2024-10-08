@@ -1,5 +1,7 @@
 package entities
 
+import "time"
+
 type Part struct {
 	ID          string     `json:"id"`
 	Name        string     `json:"name"`
@@ -8,6 +10,6 @@ type Part struct {
 	Available   bool       `json:"available"`
 	Description string     `json:"description"`
 	Quantity    int        `json:"quantity"`
-	Created_at   string     `json:"created_at"`
-	Updated_at   string     `json:"updated_at"`
+	Created_at   time.Time     `json:"created_at"`
+	Updated_at   time.Time     `json:"updated_at"`
 }
