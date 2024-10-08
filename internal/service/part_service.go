@@ -6,9 +6,25 @@ import (
 	"errors"
 )
 
-func CreatePart(part *entities.Part) error {
-	if part.Name == "" || part.Supplier_id == "" {
-		return errors.New("Name and Supplier_id are required")
+type PartService struct {
+	partRepo repository.PartRepository
+}
+
+func NewPartService(partRepo repository.PartRepository) *PartService {
+	return &PartService{
+		partRepo: partRepo,
 	}
-	return repository.CreatePart(part)
+}
+
+func (s *PartService) CreatePart(part *entities.Part) error {
+	if part.Name == "" {
+		return errors.New("name is required")
+	}
+	if part.Supplier_id == "" {
+		return errors.New("supplier_id is required")
+	}
+	if part.Price == 0 {
+		return errors.New("price is required")
+	}
+	return s.partRepo.CreatePart(part)
 }

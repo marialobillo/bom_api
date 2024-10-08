@@ -1,36 +1,33 @@
 package main
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"log"
+
+	"github.com/gofiber/fiber/v2"
 	"github.com/marialobillo/bom_api/infrastructure/db"
 	"github.com/marialobillo/bom_api/internal/entities"
+	"github.com/marialobillo/bom_api/internal/handler"
 	"github.com/marialobillo/bom_api/internal/service"
 )
 
 func main() {
+	
+	// Initialize database connection
+	dbConn := db.NewPostgresConnection()
+	defer dbConn.Close()
+	
+	// Setup  repository and service
+	partRepo := repository.NewPartRepository()
+	partService := service.NewPartService(partRepo)
+
+	// Setup handler 
+	partHandler := handler.NewPartHandler(partService)
+
 	app := fiber.New()
 	apiv1 := app.Group("/api/v1")
 
-	db.Connect()
-
-	apiv1.Post("/parts", func(c *fiber.Ctx) error {
-		var part entities.Part
-
-		if err := c.BodyParser(&part); err != nil {
-			return c.Status(400).SendString("Invalid Request")
-		}
-
-		if err := service.CreatePart(&part); err != nil {
-			return c.Status(500).SendString("Error creating part")
-		}
-
-		return c.Status(201).JSON(part)
-	})
-
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Hello, World!")
-	})
+	
+	routes.SetupRoutes(apiv1, partHandler)
 
 	if err := app.Listen(":3300"); err != nil {
 		log.Fatal(err)
