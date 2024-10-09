@@ -1,21 +1,27 @@
 package service
 
 import (
-	"github.com/marialobillo/bom_api/internal/repository"
+	"errors"
+
 	"github.com/marialobillo/bom_api/internal/entities"
+	"github.com/marialobillo/bom_api/internal/repository"
 )
 
 type SupplierService interface {
-	repo repository.SupplierService
+	CreateSupplier(supplier *entities.Supplier) error
 }
 
-func NewSupplierService(repo repository.SupplierService) *SupplierService {
+type supplierService struct {
+	repo repository.SupplierRepository
+}
+
+func NewSupplierService(repo repository.SupplierRepository) SupplierService {
 	return &supplierService{
 		repo: repo,
 	}
 }
 
-func (s *SupplierService) CreateSupplier(supplier *entities.Supplier) error {
+func (s *supplierService) CreateSupplier(supplier *entities.Supplier) error {
 	if supplier.Name == "" {
 		return errors.New("supplier name is required")
 	}

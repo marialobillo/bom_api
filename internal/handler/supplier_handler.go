@@ -9,10 +9,10 @@ import (
 )
 
 type SupplierHandler struct {
-	service *service.SupplierService
+	service service.SupplierService
 }
 
-func NewSupplierHandler(service *service.SupplierService) *SupplierHandler {
+func NewSupplierHandler(service service.SupplierService) *SupplierHandler {
 	return &SupplierHandler{
 		service: service,
 	}

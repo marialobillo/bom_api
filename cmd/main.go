@@ -16,18 +16,28 @@ func main() {
 	database := db.NewPostgresConnection()
 	defer database.Close()
 
-	// Setup  repository and service
-	partRepo := repository.NewPartRepository(database)
-	partService := service.NewPartService(partRepo)
+	sqlDB := database.DB
 
-	// Setup handler 
+	// Setup  repository and service, and handler
+	partRepo := repository.NewPartRepository(sqlDB)
+	partService := service.NewPartService(partRepo)
 	partHandler := handler.NewPartHandler(partService)
 
+	// Setup repository and service, and handler for supplier
+	supplierRepo := repository.NewSupplierRepository(sqlDB)
+	supplierService := service.NewSupplierService(supplierRepo)
+	supplierHandler := handler.NewSupplierHandler(supplierService)
+
+	// Initialize handlers map
+	handlers := map[string]interface{}{
+		"part":     partHandler,
+		"supplier": supplierHandler,
+	}
+
 	app := fiber.New()
-	apiv1 := app.Group("/api/v1")
+	//apiv1 := app.Group("/api/v1")
 
-
-	routes.SetupRoutes(apiv1, partHandler)
+	routes.Routes(app, handlers)
 
 	if err := app.Listen(":3300"); err != nil {
 		log.Fatal(err)
