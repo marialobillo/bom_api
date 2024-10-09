@@ -11,7 +11,10 @@ type Database struct {
 }
 
 func NewPostgresConnection() *Database {
-	connStr := "user=postgres password=postgres dbname=bom_api sslmode=disable"
+	//connStr := "user=postgres password=postgres dbname=bom_api sslmode=disable"
+	connStr := "user=root password=123456 dbname=bom_api sslmode=disable"
+	//connStr := "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable"
+
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal("Failed to connect to the database:", err)

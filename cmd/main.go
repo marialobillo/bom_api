@@ -5,9 +5,9 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/marialobillo/bom_api/infrastructure/db"
-	"github.com/marialobillo/bom_api/internal/entities"
 	"github.com/marialobillo/bom_api/internal/handler"
 	"github.com/marialobillo/bom_api/internal/repository"
+	"github.com/marialobillo/bom_api/internal/routes"
 	"github.com/marialobillo/bom_api/internal/service"
 )
 
