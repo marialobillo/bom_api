@@ -25,8 +25,8 @@ func NewSupplierRepository(db *sql.DB) *SupplierRepo {
 }
 
 func (r *SupplierRepo) CreateSupplier(supplier *entities.Supplier) error {
-	query := "INSERT INTO suppliers (name, address) VALUES ($1, $2) RETURNING id"
-	err := r.db.QueryRow(query, supplier.Name, supplier.Address).Scan(&supplier.ID)
+	query := "INSERT INTO suppliers (name, contact, email, address) VALUES ($1, $2, $3, $4) RETURNING id"
+	err := r.db.QueryRow(query, supplier.Name, supplier.Contact, supplier.Email, supplier.Address).Scan(&supplier.ID)
 	if err != nil {
 		log.Println("Error creating supplier: ", err)
 		return err
