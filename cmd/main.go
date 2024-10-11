@@ -12,7 +12,10 @@ import (
 )
 
 func main() {
-	database := db.NewPostgresConnection()
+	database, err := db.NewPostgresConnection()
+	if err != nil {
+		log.Fatal("Failed to connect to the database:", err)
+	}
 	defer database.Close()
 
 	sqlDB := database.DB
