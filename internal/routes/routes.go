@@ -11,6 +11,7 @@ func PartRoutes(app fiber.Router, partHandler *handler.PartHandler) {
 
 func SupplierRoutes(app fiber.Router, supplierHandler *handler.SupplierHandler) {
 	app.Post("/suppliers", supplierHandler.CreateSupplier)
+	app.Put("/suppliers/:id", supplierHandler.UpdateSupplier)
 }
 
 func Routes(app *fiber.App, handlers map[string]interface{}) {
