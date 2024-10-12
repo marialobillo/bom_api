@@ -38,3 +38,27 @@ func (h *SupplierHandler) CreateSupplier(c *fiber.Ctx) error {
 		"data":    supplier,
 	})
 }
+
+func (h *SupplierHandler) UpdateSupplier(c *fiber.Ctx) error {
+	id := c.Params("id")
+	supplier := new(entities.Supplier)
+
+	if err := c.BodyParser(supplier); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	supplier.ID = id
+
+	if err := h.service.UpdateSupplier(c.Context(), supplier); err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.Status(http.StatusOK).JSON(fiber.Map{
+		"message": "Supplier updated successfully",
+		"data":    supplier,
+	})
+}

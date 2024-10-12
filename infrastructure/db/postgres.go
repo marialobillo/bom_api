@@ -14,7 +14,7 @@ type Database struct {
     DB *sql.DB
 }
 
-func NewPostgresConnection() *Database {
+func NewPostgresConnection() (*Database, error) {
 	err := godotenv.Load()
     if err != nil {
         log.Println("No .env file found, loading environment variables from system")
@@ -32,15 +32,15 @@ func NewPostgresConnection() *Database {
 
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		log.Fatal("Failed to connect to the database:", err)
+		return nil, fmt.Errorf("failed to connect to the database: %w", err)
 	}
 
 	if err := db.Ping(); err != nil {
-        log.Fatal("Database connection is not active:", err)
-    }
-	log.Println("Connected to database successfully")
+		return nil, fmt.Errorf("database connection is not active: %w", err)
+	}
 
-	return &Database{DB: db}
+	log.Println("Connected to database successfully")
+	return &Database{DB: db}, nil
 }
 
 func (d *Database) Close() error {

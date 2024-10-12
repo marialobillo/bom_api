@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"log"
 
@@ -9,6 +10,8 @@ import (
 
 type SupplierRepository interface {
 	CreateSupplier(supplier *entities.Supplier) error
+	GetSupplierByID(ctx context.Context, id string) (*entities.Supplier, error)
+	UpdateSupplier(ctx context.Context, supplier *entities.Supplier) error
 }
 
 type SupplierRepo struct {
@@ -22,10 +25,33 @@ func NewSupplierRepository(db *sql.DB) *SupplierRepo {
 }
 
 func (r *SupplierRepo) CreateSupplier(supplier *entities.Supplier) error {
-	query := "INSERT INTO suppliers (name, address) VALUES ($1, $2) RETURNING id"
-	err := r.db.QueryRow(query, supplier.Name, supplier.Address).Scan(&supplier.ID)
+	query := "INSERT INTO suppliers (name, contact, email, address) VALUES ($1, $2, $3, $4) RETURNING id"
+	err := r.db.QueryRow(query, supplier.Name, supplier.Contact, supplier.Email, supplier.Address).Scan(&supplier.ID)
 	if err != nil {
 		log.Println("Error creating supplier: ", err)
+		return err
+	}
+	return nil
+}
+
+func (r *SupplierRepo) GetSupplierByID(ctx context.Context, id string) (*entities.Supplier, error) {
+	query := "SELECT id, name, contact, email, address FROM suppliers WHERE id = $1"
+	supplier := &entities.Supplier{}
+	row := r.db.QueryRowContext(ctx, query, id)
+
+	err := row.Scan(&supplier.ID, &supplier.Name, &supplier.Contact, &supplier.Email, &supplier.Address)
+	if err != nil {
+		log.Println("Error getting supplier by id: ", err)
+		return nil, err
+	}
+	return supplier, nil
+}
+
+func (r *SupplierRepo) UpdateSupplier(ctx context.Context, supplier *entities.Supplier) error {
+	query := "UPDATE suppliers SET name = $1, contact = $2, email = $3, address = $4 WHERE id = $5"
+	_, err := r.db.ExecContext(ctx, query, supplier.Name, supplier.Contact, supplier.Email, supplier.Address, supplier.ID)
+	if err != nil {
+		log.Println("Error updating supplier: ", err)
 		return err
 	}
 	return nil
