@@ -62,3 +62,17 @@ func (h *SupplierHandler) UpdateSupplier(c *fiber.Ctx) error {
 		"data":    supplier,
 	})
 }
+
+func (h *SupplierHandler) DeleteSupplier(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	if err := h.service.DeleteSupplier(c.Context(), id); err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.Status(http.StatusOK).JSON(fiber.Map{
+		"message": "Supplier deleted successfully",
+	})
+}
