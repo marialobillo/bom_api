@@ -13,6 +13,8 @@ func SupplierRoutes(app fiber.Router, supplierHandler *handler.SupplierHandler) 
 	app.Post("/suppliers", supplierHandler.CreateSupplier)
 	app.Put("/suppliers/:id", supplierHandler.UpdateSupplier)
 	app.Delete("/suppliers/:id", supplierHandler.DeleteSupplier)
+	app.Get("/suppliers/:id", supplierHandler.GetSupplierByID)
+	app.Get("/suppliers", supplierHandler.GetAllSuppliers)
 }
 
 func Routes(app *fiber.App, handlers map[string]interface{}) {
