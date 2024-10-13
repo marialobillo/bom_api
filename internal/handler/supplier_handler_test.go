@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"io"
+
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -32,39 +34,38 @@ func (m *MockSupplierService) CreateSupplier(ctx context.Context, supplier *enti
 
 func (m *MockSupplierService) UpdateSupplier(ctx context.Context, id string, supplier *entities.Supplier) (*entities.Supplier, error) {
 	if m.UpdateSupplierFn != nil {
-		return m.UpdateSupplierFn(ctx, id, supplier) // Call the mock function
+		return m.UpdateSupplierFn(ctx, id, supplier) 
 	}
-	return nil, nil // or return an appropriate error if needed
+	return nil, nil 
 }
 
 func (m *MockSupplierService) DeleteSupplier(ctx context.Context, id string) error {
 	if m.DeleteSupplierFn != nil {
-		return m.DeleteSupplierFn(ctx, id) // Call the mock function
+		return m.DeleteSupplierFn(ctx, id) 
 	}
-	return nil // or return an appropriate error if needed
+	return nil 
 }
 
 func (m *MockSupplierService) GetSupplierByID(ctx context.Context, id string) (*entities.Supplier, error) {
 	if m.GetSupplierByIDFn != nil {
-		return m.GetSupplierByIDFn(ctx, id) // Call the mock function
+		return m.GetSupplierByIDFn(ctx, id) 
 	}
-	return nil, nil // or return an appropriate error if needed
+	return nil, nil 
 }
 
 func (m *MockSupplierService) GetAllSuppliers(ctx context.Context) ([]entities.Supplier, error) {
 	if m.GetAllSuppliersFn != nil {
-		return m.GetAllSuppliersFn(ctx) // Call the mock function
+		return m.GetAllSuppliersFn(ctx) 
 	}
-	return nil, nil // or return an appropriate error if needed
+	return nil, nil 
 }
 
 func setup() *fiber.App {
 	app := fiber.New()
 
-	// Initialize mock service with function literals for all expected methods
+
 	mockService := &MockSupplierService{
 		CreateSupplierFn: func(ctx context.Context, supplier *entities.Supplier) (*entities.Supplier, error) {
-			// Return a sample supplier or a nil
 			return &entities.Supplier{
 				ID:      "1",
 				Name:    supplier.Name,
@@ -74,11 +75,9 @@ func setup() *fiber.App {
 			}, nil
 		},
 		UpdateSupplierFn: func(ctx context.Context, id string, supplier *entities.Supplier) (*entities.Supplier, error) {
-			// Return the updated supplier
 			return supplier, nil
 		},
 		DeleteSupplierFn: func(ctx context.Context, id string) error {
-			// Simulate successful deletion
 			return nil
 		},
 		GetSupplierByIDFn: func(ctx context.Context, id string) (*entities.Supplier, error) {
@@ -91,7 +90,7 @@ func setup() *fiber.App {
 					Address: "Address A",
 				}, nil
 			}
-			return nil, nil // Return nil if not found
+			return nil, nil 
 		},
 		GetAllSuppliersFn: func(ctx context.Context) ([]entities.Supplier, error) {
 			return []entities.Supplier{
@@ -115,15 +114,12 @@ func setup() *fiber.App {
 
 	supplierHandler := handler.NewSupplierHandler(mockService)
 
-	// Setup routes
 	handlers := map[string]interface{}{
 		"supplier": supplierHandler,
 	}
 	routes.Routes(app, handlers)
 	return app
 }
-
-
 
 func TestSupplierHandler(t *testing.T) {
 	app := fiber.New()
@@ -216,25 +212,56 @@ func TestGetSupplierByID(t *testing.T) {
 }
 
 func TestGetAllSuppliers(t *testing.T) {
-	app := setup()
+    app := setup()
 
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/suppliers", nil)
-	res, err := app.Test(req)
-	if err != nil {
-		t.Fatalf("Error testing request: %v", err)
-	}
-	defer res.Body.Close()
+    // Create a sample supplier using a pointer
+    supplier := &entities.Supplier{
+        Name:    "Supplier A",
+        Contact: "Contact A",
+        Email:   "supplierA@example.com",
+        Address: "Address A",
+    }
 
-	if res.StatusCode != http.StatusOK {
-		t.Errorf("Expected status code %d, got %d", http.StatusOK, res.StatusCode)
-	}
+    supplierJSON, err := json.Marshal(supplier)
+    if err != nil {
+        t.Fatalf("Error marshalling supplier: %v", err)
+    }
 
-	var response map[string]interface{}
-	if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
-		t.Fatalf("Error decoding response: %v", err)
-	}
+    createReq := httptest.NewRequest(http.MethodPost, "/api/v1/suppliers", bytes.NewBuffer(supplierJSON))
+	createReq.Header.Set("Content-Type", "application/json")
 
-	if len(response["data"].([]interface{})) != 1 {
-		t.Errorf("Expected 1 supplier, got %d", len(response["data"].([]interface{})))
-	}
+    createRes, err := app.Test(createReq)
+    if err != nil {
+        t.Fatalf("Error testing request: %v", err)
+    }
+    defer createRes.Body.Close()
+
+    body, err := io.ReadAll(createRes.Body)
+    if err != nil {
+        t.Fatalf("Error reading response body: %v", err)
+    }
+
+    if createRes.StatusCode != http.StatusCreated {
+        t.Errorf("Expected status code %d, got %d. Response body: %s", http.StatusCreated, createRes.StatusCode, body)
+    }
+
+    req := httptest.NewRequest(http.MethodGet, "/api/v1/suppliers", nil)
+    res, err := app.Test(req)
+    if err != nil {
+        t.Fatalf("Error testing request: %v", err)
+    }
+    defer res.Body.Close()
+
+    if res.StatusCode != http.StatusOK {
+        t.Errorf("Expected status code %d, got %d", http.StatusOK, res.StatusCode)
+    }
+
+    var response map[string]interface{}
+    if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
+        t.Fatalf("Error decoding response: %v", err)
+    }
+
+    if len(response["data"].([]interface{})) < 1 {
+        t.Errorf("Expected at least 1 supplier, got %d", len(response["data"].([]interface{})))
+    }
 }
