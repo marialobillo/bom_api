@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 
 	"github.com/marialobillo/bom_api/internal/entities"
@@ -19,6 +20,15 @@ type SupplierRepo struct {
 	db *sql.DB
 }
 
+type RepositoryError struct {
+    Message string
+    Err     error
+}
+
+func (e *RepositoryError) Error() string {
+    return e.Message + ": " + e.Err.Error()
+}
+
 func NewSupplierRepository(db *sql.DB) *SupplierRepo {
 	return &SupplierRepo{
 		db: db,
@@ -29,9 +39,11 @@ func (r *SupplierRepo) CreateSupplier(supplier *entities.Supplier) error {
 	query := "INSERT INTO suppliers (name, contact, email, address) VALUES ($1, $2, $3, $4) RETURNING id"
 	err := r.db.QueryRow(query, supplier.Name, supplier.Contact, supplier.Email, supplier.Address).Scan(&supplier.ID)
 	if err != nil {
-		log.Println("Error creating supplier: ", err)
-		return err
-	}
+        return &RepositoryError{
+            Message: "failed to create supplier",
+            Err:     err,
+        }
+    }
 	return nil
 }
 
@@ -42,9 +54,11 @@ func (r *SupplierRepo) GetSupplierByID(ctx context.Context, id string) (*entitie
 
 	err := row.Scan(&supplier.ID, &supplier.Name, &supplier.Contact, &supplier.Email, &supplier.Address)
 	if err != nil {
-		log.Println("Error getting supplier by id: ", err)
-		return nil, err
-	}
+        if err == sql.ErrNoRows {
+            return nil, fmt.Errorf("supplier with id %s not found: %w", id, err)
+        }
+        return nil, fmt.Errorf("failed to get supplier by id %s: %w", id, err)
+    }
 	return supplier, nil
 }
 
@@ -52,28 +66,41 @@ func (r *SupplierRepo) UpdateSupplier(ctx context.Context, supplier *entities.Su
 	query := "UPDATE suppliers SET name = $1, contact = $2, email = $3, address = $4 WHERE id = $5"
 	_, err := r.db.ExecContext(ctx, query, supplier.Name, supplier.Contact, supplier.Email, supplier.Address, supplier.ID)
 	if err != nil {
-		log.Println("Error updating supplier: ", err)
-		return err
+		return &RepositoryError{
+				Message: "failed to update supplier",
+				Err:     err,
+			}
 	}
 	return nil
 }
 
 func (r *SupplierRepo) DeleteSupplier(ctx context.Context, id string) error {
 	query := "DELETE FROM suppliers WHERE id = $1"
-	_, err := r.db.ExecContext(ctx, query, id)
-	if err != nil {
-		log.Println("Error deleting supplier: ", err)
-		return err
-	}
-	return nil
+    result, err := r.db.ExecContext(ctx, query, id)
+    if err != nil {
+        return fmt.Errorf("error executing delete query: %w", err)
+    }
+
+    rowsAffected, err := result.RowsAffected()
+    if err != nil {
+        return fmt.Errorf("error getting rows affected: %w", err)
+    }
+
+    if rowsAffected == 0 {
+        return fmt.Errorf("no supplier found with id %s", id)
+    }
+
+    return nil
 }
 
 func (r *SupplierRepo) GetAllSuppliers(ctx context.Context) ([]entities.Supplier, error) {
 	query := "SELECT id, name, contact, email, address FROM suppliers"
 	rows, err := r.db.QueryContext(ctx, query)
 	if err != nil {
-		log.Println("Error getting all suppliers: ", err)
-		return nil, err
+		return nil, &RepositoryError{
+			Message: "failed to get all suppliers",
+			Err:     err,
+		}
 	}
 	defer rows.Close()
 
@@ -82,8 +109,10 @@ func (r *SupplierRepo) GetAllSuppliers(ctx context.Context) ([]entities.Supplier
 		supplier := entities.Supplier{}
 		err = rows.Scan(&supplier.ID, &supplier.Name, &supplier.Contact, &supplier.Email, &supplier.Address)
 		if err != nil {
-			log.Println("Error scanning suppliers: ", err)
-			return nil, err
+			return nil, &RepositoryError{
+				Message: "failed to scan supplier",
+				Err:     err,
+			}
 		}
 		suppliers = append(suppliers, supplier)
 	}
