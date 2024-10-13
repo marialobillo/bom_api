@@ -4,16 +4,16 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
 
 	"github.com/marialobillo/bom_api/internal/entities"
 )
 
 type SupplierRepository interface {
-	CreateSupplier(supplier *entities.Supplier) error
+	CreateSupplier(ctx context.Context, supplier *entities.Supplier) error
 	GetSupplierByID(ctx context.Context, id string) (*entities.Supplier, error)
 	UpdateSupplier(ctx context.Context, supplier *entities.Supplier) error
 	DeleteSupplier(ctx context.Context, id string) error
+	GetAllSuppliers(ctx context.Context) ([]entities.Supplier, error)
 }
 
 type SupplierRepo struct {
@@ -35,9 +35,9 @@ func NewSupplierRepository(db *sql.DB) *SupplierRepo {
 	}
 }
 
-func (r *SupplierRepo) CreateSupplier(supplier *entities.Supplier) error {
+func (r *SupplierRepo) CreateSupplier(ctx context.Context, supplier *entities.Supplier) error {
 	query := "INSERT INTO suppliers (name, contact, email, address) VALUES ($1, $2, $3, $4) RETURNING id"
-	err := r.db.QueryRow(query, supplier.Name, supplier.Contact, supplier.Email, supplier.Address).Scan(&supplier.ID)
+	err := r.db.QueryRowContext(ctx, query, supplier.Name, supplier.Contact, supplier.Email, supplier.Address).Scan(&supplier.ID)
 	if err != nil {
         return &RepositoryError{
             Message: "failed to create supplier",

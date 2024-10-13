@@ -20,7 +20,7 @@ type MockSupplierService struct {
 	DeleteSupplierFn string
 }
 
-func (m *MockSupplierService) CreateSupplier(supplier *entities.Supplier) error {
+func (m *MockSupplierService) CreateSupplier(ctx context.Context, supplier *entities.Supplier) error {
 	m.CreateSupplierFn = supplier
 	return nil
 }

@@ -9,7 +9,7 @@ import (
 )
 
 type SupplierService interface {
-	CreateSupplier(supplier *entities.Supplier) error
+	CreateSupplier(ctx context.Context, supplier *entities.Supplier) error
 	UpdateSupplier(ctx context.Context, supplier *entities.Supplier) error
 	DeleteSupplier(ctx context.Context, id string) error
 }
@@ -24,12 +24,12 @@ func NewSupplierService(repo repository.SupplierRepository) SupplierService {
 	}
 }
 
-func (s *supplierService) CreateSupplier(supplier *entities.Supplier) error {
+func (s *supplierService) CreateSupplier(ctx context.Context, supplier *entities.Supplier) error {
 	if supplier.Name == "" {
 		return errors.New("supplier name is required")
 	}
 
-	return s.repo.CreateSupplier(supplier)
+	return s.repo.CreateSupplier(ctx, supplier)
 }
 
 func (s *supplierService) UpdateSupplier(ctx context.Context, supplier *entities.Supplier) error {

@@ -26,8 +26,9 @@ func (h *SupplierHandler) CreateSupplier(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
+	ctx := c.Context()
 
-	if err := h.service.CreateSupplier(&supplier); err != nil {
+	if err := h.service.CreateSupplier(ctx, &supplier); err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
