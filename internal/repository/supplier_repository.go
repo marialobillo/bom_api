@@ -67,3 +67,25 @@ func (r *SupplierRepo) DeleteSupplier(ctx context.Context, id string) error {
 	}
 	return nil
 }
+
+func (r *SupplierRepo) GetAllSuppliers(ctx context.Context) ([]entities.Supplier, error) {
+	query := "SELECT id, name, contact, email, address FROM suppliers"
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		log.Println("Error getting all suppliers: ", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var suppliers []entities.Supplier
+	for rows.Next() {
+		supplier := entities.Supplier{}
+		err = rows.Scan(&supplier.ID, &supplier.Name, &supplier.Contact, &supplier.Email, &supplier.Address)
+		if err != nil {
+			log.Println("Error scanning suppliers: ", err)
+			return nil, err
+		}
+		suppliers = append(suppliers, supplier)
+	}
+	return suppliers, nil
+}
