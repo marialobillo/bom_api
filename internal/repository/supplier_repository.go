@@ -12,6 +12,7 @@ type SupplierRepository interface {
 	CreateSupplier(supplier *entities.Supplier) error
 	GetSupplierByID(ctx context.Context, id string) (*entities.Supplier, error)
 	UpdateSupplier(ctx context.Context, supplier *entities.Supplier) error
+	DeleteSupplier(ctx context.Context, id string) error
 }
 
 type SupplierRepo struct {
@@ -52,6 +53,16 @@ func (r *SupplierRepo) UpdateSupplier(ctx context.Context, supplier *entities.Su
 	_, err := r.db.ExecContext(ctx, query, supplier.Name, supplier.Contact, supplier.Email, supplier.Address, supplier.ID)
 	if err != nil {
 		log.Println("Error updating supplier: ", err)
+		return err
+	}
+	return nil
+}
+
+func (r *SupplierRepo) DeleteSupplier(ctx context.Context, id string) error {
+	query := "DELETE FROM suppliers WHERE id = $1"
+	_, err := r.db.ExecContext(ctx, query, id)
+	if err != nil {
+		log.Println("Error deleting supplier: ", err)
 		return err
 	}
 	return nil

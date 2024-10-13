@@ -11,6 +11,7 @@ import (
 type SupplierService interface {
 	CreateSupplier(supplier *entities.Supplier) error
 	UpdateSupplier(ctx context.Context, supplier *entities.Supplier) error
+	DeleteSupplier(ctx context.Context, id string) error
 }
 
 type supplierService struct {
@@ -40,4 +41,15 @@ func (s *supplierService) UpdateSupplier(ctx context.Context, supplier *entities
         return errors.New("supplier not found")
     }
     return s.repo.UpdateSupplier(ctx, supplier)
+}
+
+func (s *supplierService) DeleteSupplier(ctx context.Context, id string) error {
+	existingSupplier, err := s.repo.GetSupplierByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if existingSupplier == nil {
+		return errors.New("supplier not found")
+	}
+	return s.repo.DeleteSupplier(ctx, id)
 }
