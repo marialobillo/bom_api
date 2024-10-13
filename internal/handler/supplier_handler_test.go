@@ -18,6 +18,8 @@ type MockSupplierService struct {
 	CreateSupplierFn *entities.Supplier
 	UpdateSupplierFn *entities.Supplier
 	DeleteSupplierFn string
+	GetSupplierByIDFn *entities.Supplier
+	GetAllSuppliersFn []entities.Supplier
 }
 
 func (m *MockSupplierService) CreateSupplier(ctx context.Context, supplier *entities.Supplier) error {
@@ -33,6 +35,14 @@ func (m *MockSupplierService) UpdateSupplier(ctx context.Context, supplier *enti
 func (m *MockSupplierService) DeleteSupplier(ctx context.Context, id string) error {
 	m.DeleteSupplierFn = id
 	return nil
+}
+
+func (m *MockSupplierService) GetSupplierByID(ctx context.Context, id string) (*entities.Supplier, error) {
+	return m.GetSupplierByIDFn, nil
+}
+
+func (m *MockSupplierService) GetAllSuppliers(ctx context.Context) ([]entities.Supplier, error) {
+	return m.GetAllSuppliersFn, nil
 }
 
 func TestSupplierHandler(t *testing.T) {

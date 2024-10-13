@@ -12,6 +12,8 @@ type SupplierService interface {
 	CreateSupplier(ctx context.Context, supplier *entities.Supplier) error
 	UpdateSupplier(ctx context.Context, supplier *entities.Supplier) error
 	DeleteSupplier(ctx context.Context, id string) error
+	GetSupplierByID(ctx context.Context, id string) (*entities.Supplier, error)
+	GetAllSuppliers(ctx context.Context) ([]entities.Supplier, error)
 }
 
 type supplierService struct {
