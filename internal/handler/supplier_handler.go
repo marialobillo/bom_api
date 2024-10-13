@@ -50,18 +50,16 @@ func (h *SupplierHandler) UpdateSupplier(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
-
 	supplier.ID = id
-
-	if err := h.service.UpdateSupplier(c.Context(), supplier); err != nil {
+	updatedSupplier, err := h.service.UpdateSupplier(c.Context(), id, supplier)
+	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
-
 	return c.Status(http.StatusOK).JSON(fiber.Map{
 		"message": "Supplier updated successfully",
-		"data":    supplier,
+		"data":    updatedSupplier,
 	})
 }
 

@@ -51,7 +51,13 @@ func (s *supplierService) UpdateSupplier(ctx context.Context, id string, supplie
 	if existingSupplier == nil {
 		return nil, errors.New("supplier not found")
 	}
-	return s.repo.UpdateSupplier(ctx, supplier) // Ensure the repo function returns the correct type
+
+	supplier.ID = existingSupplier.ID 
+	updatedSupplier, err := s.repo.UpdateSupplier(ctx, supplier) 
+	if err != nil {
+		return nil, err
+	}
+	return updatedSupplier, nil
 }
 
 func (s *supplierService) DeleteSupplier(ctx context.Context, id string) error {
