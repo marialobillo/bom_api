@@ -9,8 +9,8 @@ import (
 )
 
 type SupplierService interface {
-	CreateSupplier(ctx context.Context, supplier *entities.Supplier) error
-	UpdateSupplier(ctx context.Context, supplier *entities.Supplier) error
+	CreateSupplier(ctx context.Context, supplier *entities.Supplier) (*entities.Supplier, error) 
+	UpdateSupplier(ctx context.Context, id string, supplier *entities.Supplier) (*entities.Supplier, error)
 	DeleteSupplier(ctx context.Context, id string) error
 	GetSupplierByID(ctx context.Context, id string) (*entities.Supplier, error)
 	GetAllSuppliers(ctx context.Context) ([]entities.Supplier, error)
@@ -35,23 +35,23 @@ func NewSupplierService(repo repository.SupplierRepository) SupplierService {
 	}
 }
 
-func (s *supplierService) CreateSupplier(ctx context.Context, supplier *entities.Supplier) error {
+func (s *supplierService) CreateSupplier(ctx context.Context, supplier *entities.Supplier) (*entities.Supplier, error) {
 	if supplier.Name == "" {
-		return errors.New("supplier name is required")
+		return nil, errors.New("supplier name is required")
 	}
 
 	return s.repo.CreateSupplier(ctx, supplier)
 }
 
-func (s *supplierService) UpdateSupplier(ctx context.Context, supplier *entities.Supplier) error {
-	existingSupplier, err := s.repo.GetSupplierByID(ctx, supplier.ID)
+func (s *supplierService) UpdateSupplier(ctx context.Context, id string, supplier *entities.Supplier) (*entities.Supplier, error) {
+	existingSupplier, err := s.repo.GetSupplierByID(ctx, id)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if existingSupplier == nil {
-		return errors.New("supplier not found")
+		return nil, errors.New("supplier not found")
 	}
-	return s.repo.UpdateSupplier(ctx, supplier)
+	return s.repo.UpdateSupplier(ctx, supplier) // Ensure the repo function returns the correct type
 }
 
 func (s *supplierService) DeleteSupplier(ctx context.Context, id string) error {

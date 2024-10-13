@@ -9,9 +9,9 @@ import (
 )
 
 type SupplierRepository interface {
-	CreateSupplier(ctx context.Context, supplier *entities.Supplier) error
+	CreateSupplier(ctx context.Context, supplier *entities.Supplier) (*entities.Supplier, error)
 	GetSupplierByID(ctx context.Context, id string) (*entities.Supplier, error)
-	UpdateSupplier(ctx context.Context, supplier *entities.Supplier) error
+	UpdateSupplier(ctx context.Context, supplier *entities.Supplier) (*entities.Supplier, error)
 	DeleteSupplier(ctx context.Context, id string) error
 	GetAllSuppliers(ctx context.Context) ([]entities.Supplier, error)
 }
@@ -35,16 +35,16 @@ func NewSupplierRepository(db *sql.DB) *SupplierRepo {
 	}
 }
 
-func (r *SupplierRepo) CreateSupplier(ctx context.Context, supplier *entities.Supplier) error {
+func (r *SupplierRepo) CreateSupplier(ctx context.Context, supplier *entities.Supplier) (*entities.Supplier, error) {
 	query := "INSERT INTO suppliers (name, contact, email, address) VALUES ($1, $2, $3, $4) RETURNING id"
 	err := r.db.QueryRowContext(ctx, query, supplier.Name, supplier.Contact, supplier.Email, supplier.Address).Scan(&supplier.ID)
 	if err != nil {
-		return &RepositoryError{
+		return nil, &RepositoryError{
 			Message: "failed to create supplier",
 			Err:     err,
 		}
 	}
-	return nil
+	return supplier, nil
 }
 
 func (r *SupplierRepo) GetSupplierByID(ctx context.Context, id string) (*entities.Supplier, error) {
@@ -62,17 +62,18 @@ func (r *SupplierRepo) GetSupplierByID(ctx context.Context, id string) (*entitie
 	return supplier, nil
 }
 
-func (r *SupplierRepo) UpdateSupplier(ctx context.Context, supplier *entities.Supplier) error {
+func (r *SupplierRepo) UpdateSupplier(ctx context.Context, supplier *entities.Supplier) (*entities.Supplier, error) {
 	query := "UPDATE suppliers SET name = $1, contact = $2, email = $3, address = $4 WHERE id = $5"
 	_, err := r.db.ExecContext(ctx, query, supplier.Name, supplier.Contact, supplier.Email, supplier.Address, supplier.ID)
 	if err != nil {
-		return &RepositoryError{
+		return nil, &RepositoryError{
 			Message: "failed to update supplier",
 			Err:     err,
 		}
 	}
-	return nil
+	return supplier, nil // Return the updated supplier
 }
+
 
 func (r *SupplierRepo) DeleteSupplier(ctx context.Context, id string) error {
 	query := "DELETE FROM suppliers WHERE id = $1"

@@ -28,7 +28,8 @@ func (h *SupplierHandler) CreateSupplier(c *fiber.Ctx) error {
 	}
 	ctx := c.Context()
 
-	if err := h.service.CreateSupplier(ctx, &supplier); err != nil {
+	createdSupplier, err := h.service.CreateSupplier(ctx, &supplier)
+	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
@@ -36,7 +37,7 @@ func (h *SupplierHandler) CreateSupplier(c *fiber.Ctx) error {
 
 	return c.Status(http.StatusCreated).JSON(fiber.Map{
 		"message": "Supplier created successfully",
-		"data":    supplier,
+		"data":    createdSupplier,
 	})
 }
 

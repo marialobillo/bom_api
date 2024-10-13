@@ -16,63 +16,114 @@ import (
 )
 
 type MockSupplierService struct {
-	CreateSupplierFn  *entities.Supplier
-	UpdateSupplierFn  *entities.Supplier
-	DeleteSupplierFn  string
-	GetSupplierByIDFn *entities.Supplier
-	GetAllSuppliersFn []entities.Supplier
+	CreateSupplierFn  func(ctx context.Context, supplier *entities.Supplier) (*entities.Supplier, error)
+	UpdateSupplierFn  func(ctx context.Context, id string, supplier *entities.Supplier) (*entities.Supplier, error)
+	DeleteSupplierFn  func(ctx context.Context, id string) error
+	GetSupplierByIDFn func(ctx context.Context, id string) (*entities.Supplier, error)
+	GetAllSuppliersFn func(ctx context.Context) ([]entities.Supplier, error)
 }
 
-func (m *MockSupplierService) CreateSupplier(ctx context.Context, supplier *entities.Supplier) error {
-	m.CreateSupplierFn = supplier
-	return nil
-}
-
-func (m *MockSupplierService) UpdateSupplier(ctx context.Context, supplier *entities.Supplier) error {
-	m.UpdateSupplierFn = supplier
-	return nil
-}
-
-func (m *MockSupplierService) DeleteSupplier(ctx context.Context, id string) error {
-	m.DeleteSupplierFn = id
-	return nil
-}
-
-func (m *MockSupplierService) GetSupplierByID(ctx context.Context, id string) (*entities.Supplier, error) {
-	if m.GetSupplierByIDFn != nil && m.GetSupplierByIDFn.ID == id {
-		return m.GetSupplierByIDFn, nil
+func (m *MockSupplierService) CreateSupplier(ctx context.Context, supplier *entities.Supplier) (*entities.Supplier, error) {
+	if m.CreateSupplierFn != nil {
+		return m.CreateSupplierFn(ctx, supplier)
 	}
 	return nil, nil
 }
 
+func (m *MockSupplierService) UpdateSupplier(ctx context.Context, id string, supplier *entities.Supplier) (*entities.Supplier, error) {
+	if m.UpdateSupplierFn != nil {
+		return m.UpdateSupplierFn(ctx, id, supplier) // Call the mock function
+	}
+	return nil, nil // or return an appropriate error if needed
+}
+
+func (m *MockSupplierService) DeleteSupplier(ctx context.Context, id string) error {
+	if m.DeleteSupplierFn != nil {
+		return m.DeleteSupplierFn(ctx, id) // Call the mock function
+	}
+	return nil // or return an appropriate error if needed
+}
+
+func (m *MockSupplierService) GetSupplierByID(ctx context.Context, id string) (*entities.Supplier, error) {
+	if m.GetSupplierByIDFn != nil {
+		return m.GetSupplierByIDFn(ctx, id) // Call the mock function
+	}
+	return nil, nil // or return an appropriate error if needed
+}
+
 func (m *MockSupplierService) GetAllSuppliers(ctx context.Context) ([]entities.Supplier, error) {
-	return m.GetAllSuppliersFn, nil
+	if m.GetAllSuppliersFn != nil {
+		return m.GetAllSuppliersFn(ctx) // Call the mock function
+	}
+	return nil, nil // or return an appropriate error if needed
 }
 
 func setup() *fiber.App {
 	app := fiber.New()
 
-	// Mock database connection and repository
+	// Initialize mock service with function literals for all expected methods
 	mockService := &MockSupplierService{
-		GetSupplierByIDFn: &entities.Supplier{
-			ID:      "1",
-			Name:    "Supplier A",
-			Contact: "Contact A",
-			Email:   "supplier@mail.com",
-			Address: "Address A",
+		CreateSupplierFn: func(ctx context.Context, supplier *entities.Supplier) (*entities.Supplier, error) {
+			// Return a sample supplier or a nil
+			return &entities.Supplier{
+				ID:      "1",
+				Name:    supplier.Name,
+				Contact: supplier.Contact,
+				Email:   supplier.Email,
+				Address: supplier.Address,
+			}, nil
+		},
+		UpdateSupplierFn: func(ctx context.Context, id string, supplier *entities.Supplier) (*entities.Supplier, error) {
+			// Return the updated supplier
+			return supplier, nil
+		},
+		DeleteSupplierFn: func(ctx context.Context, id string) error {
+			// Simulate successful deletion
+			return nil
+		},
+		GetSupplierByIDFn: func(ctx context.Context, id string) (*entities.Supplier, error) {
+			if id == "1" {
+				return &entities.Supplier{
+					ID:      "1",
+					Name:    "Supplier A",
+					Contact: "Contact A",
+					Email:   "supplier@mail.com",
+					Address: "Address A",
+				}, nil
+			}
+			return nil, nil // Return nil if not found
+		},
+		GetAllSuppliersFn: func(ctx context.Context) ([]entities.Supplier, error) {
+			return []entities.Supplier{
+				{
+					ID:      "1",
+					Name:    "Supplier A",
+					Contact: "Contact A",
+					Email:   "supplier@mail.com",
+					Address: "Address A",
+				},
+				{
+					ID:      "2",
+					Name:    "Supplier B",
+					Contact: "Contact B",
+					Email:   "supplierb@mail.com",
+					Address: "Address B",
+				},
+			}, nil
 		},
 	}
+
 	supplierHandler := handler.NewSupplierHandler(mockService)
 
-	// Initialize routes
+	// Setup routes
 	handlers := map[string]interface{}{
 		"supplier": supplierHandler,
 	}
-
 	routes.Routes(app, handlers)
-
 	return app
 }
+
+
 
 func TestSupplierHandler(t *testing.T) {
 	app := fiber.New()
@@ -137,34 +188,6 @@ func TestSupplierHandler(t *testing.T) {
 		json.NewDecoder(res.Body).Decode(&response)
 		assert.Equal(t, "Supplier deleted successfully", response["message"])
 	})
-
-	// t.Run("Get Supplier By ID", func(t *testing.T) {
-	// 	mockService.GetSupplierByIDFn = &entities.Supplier{
-	// 		ID:      "1",
-	// 		Name:    "Supplier A",
-	// 		Contact: "Contact A",
-	// 		Email:   "supplier@mail.com",
-	// 		Address: "Address A",
-	// 	}
-
-	// 	req := httptest.NewRequest(http.MethodGet, "/suppliers/1", nil)
-
-	// 	res, err := app.Test(req)
-
-	// 	assert.NoError(t, err)
-
-	// 	assert.Equal(t, http.StatusOK, res.StatusCode)
-
-	// 	var response map[string]interface{}
-	// 	err = json.NewDecoder(res.Body).Decode(&response)
-
-	// 	assert.NoError(t, err)
-
-	// 	assert.Equal(t, "Supplier A", response["data"].(map[string]interface{})["name"])
-	// 	assert.Equal(t, "Contact A", response["data"].(map[string]interface{})["contact"])
-	// 	assert.Equal(t, "supplier@mail.com", response["data"].(map[string]interface{})["email"])
-	// 	assert.Equal(t, "Address A", response["data"].(map[string]interface{})["address"])
-	// })
 }
 
 func TestGetSupplierByID(t *testing.T) {
@@ -189,5 +212,29 @@ func TestGetSupplierByID(t *testing.T) {
 	expected := "Supplier A"
 	if response["data"].(map[string]interface{})["name"] != expected {
 		t.Errorf("Expected supplier name %s, got %s", expected, response["data"].(map[string]interface{})["name"])
+	}
+}
+
+func TestGetAllSuppliers(t *testing.T) {
+	app := setup()
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/suppliers", nil)
+	res, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("Error testing request: %v", err)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		t.Errorf("Expected status code %d, got %d", http.StatusOK, res.StatusCode)
+	}
+
+	var response map[string]interface{}
+	if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
+		t.Fatalf("Error decoding response: %v", err)
+	}
+
+	if len(response["data"].([]interface{})) != 1 {
+		t.Errorf("Expected 1 supplier, got %d", len(response["data"].([]interface{})))
 	}
 }
