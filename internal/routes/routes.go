@@ -17,6 +17,10 @@ func SupplierRoutes(app fiber.Router, supplierHandler *handler.SupplierHandler) 
 	app.Get("/suppliers", supplierHandler.GetAllSuppliers)
 }
 
+func SiteRoutes(app fiber.Router, siteHandler *handler.SiteHandler) {
+	app.Post("/sites", siteHandler.CreateSite)
+}
+
 func Routes(app *fiber.App, handlers map[string]interface{}) {
 	apiv1 := app.Group("/api/v1")
 
@@ -26,5 +30,9 @@ func Routes(app *fiber.App, handlers map[string]interface{}) {
 
 	if supplierHandler, ok := handlers["supplier"].(*handler.SupplierHandler); ok {
 		SupplierRoutes(apiv1, supplierHandler)
+	}
+
+	if siteHandler, ok := handlers["site"].(*handler.SiteHandler); ok {
+		SiteRoutes(apiv1, siteHandler)
 	}
 }

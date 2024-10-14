@@ -28,9 +28,14 @@ func main() {
 	supplierService := service.NewSupplierService(supplierRepo)
 	supplierHandler := handler.NewSupplierHandler(supplierService)
 
+	siteRepo := repository.NewSiteRepository(sqlDB)
+	siteService := service.NewSiteService(siteRepo)
+	siteHandler := handler.NewSiteHandler(siteService)
+
 	handlers := map[string]interface{}{
 		"part":     partHandler,
 		"supplier": supplierHandler,
+		"site":     siteHandler,
 	}
 
 	app := fiber.New()
