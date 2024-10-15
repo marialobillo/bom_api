@@ -20,15 +20,6 @@ type SupplierRepo struct {
 	db *sql.DB
 }
 
-type RepositoryError struct {
-	Message string
-	Err     error
-}
-
-func (e *RepositoryError) Error() string {
-	return e.Message + ": " + e.Err.Error()
-}
-
 func NewSupplierRepository(db *sql.DB) *SupplierRepo {
 	return &SupplierRepo{
 		db: db,
