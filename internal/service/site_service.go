@@ -29,3 +29,11 @@ func (s *siteService) CreateSite(ctx context.Context, site *entities.Site) (*ent
 
 	return s.repo.CreateSite(ctx, site)
 }
+
+func (s *siteService) UpdateSite(ctx context.Context, site *entities.Site) (*entities.Site, error) {
+	if site.Name == "" {
+		return nil, errors.New("site name is required")
+	}
+
+	return s.repo.UpdateSite(ctx, site)
+}
