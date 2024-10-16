@@ -10,6 +10,8 @@ import (
 
 type SiteService interface {
 	CreateSite(ctx context.Context, site *entities.Site) (*entities.Site, error)
+	UpdateSite(ctx context.Context, id string, site *entities.Site) (*entities.Site, error)
+	
 }
 
 type siteService struct {

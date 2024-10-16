@@ -19,6 +19,7 @@ func SupplierRoutes(app fiber.Router, supplierHandler *handler.SupplierHandler) 
 
 func SiteRoutes(app fiber.Router, siteHandler *handler.SiteHandler) {
 	app.Post("/sites", siteHandler.CreateSite)
+	app.Put("/sites/:id", siteHandler.UpdateSite)
 }
 
 func Routes(app *fiber.App, handlers map[string]interface{}) {

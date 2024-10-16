@@ -43,7 +43,8 @@ func (h *SiteHandler) CreateSite(c *fiber.Ctx) error {
 }
 
 func (h *SiteHandler) UpdateSite(c *fiber.Ctx) error {
-	var site entities.Site
+	id := c.Params("id")
+	site := new(entities.Site)
 
 	if err := c.BodyParser(&site); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
@@ -51,14 +52,13 @@ func (h *SiteHandler) UpdateSite(c *fiber.Ctx) error {
 		})
 	}
 	ctx := c.Context()
-
-	updatedSite, err := h.service.UpdateSite(ctx, &site)
+	site.ID = id
+	updatedSite, err := h.service.UpdateSite(ctx, id, site)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})
 	}
-
 	return c.Status(http.StatusOK).JSON(fiber.Map{
 		"message": "Site updated successfully",
 		"data":    updatedSite,
