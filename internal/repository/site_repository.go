@@ -9,6 +9,7 @@ import (
 
 type SiteRepository interface {
 	CreateSite(ctx context.Context, site *entities.Site) (*entities.Site, error)
+	UpdateSite(ctx context.Context, site *entities.Site) (*entities.Site, error)
 }
 
 type SiteRepo struct {
@@ -28,6 +29,18 @@ func (r *SiteRepo) CreateSite(ctx context.Context, site *entities.Site) (*entiti
 	if err != nil {
 		return nil, &RepositoryError{
 			Message: "failed to create site",
+			Err:     err,
+		}
+	}
+	return site, nil
+}
+
+func (r *SiteRepo) UpdateSite(ctx context.Context, site *entities.Site) (*entities.Site, error) {
+	query := "UPDATE sites SET name = $1, address = $2, location = $3 where id = $4"
+	_, err := r.db.ExecContext(ctx, query, site.Name, site.Address, site.Location, site.ID)
+	if err != nil {
+		return nil, &RepositoryError{
+			Message: "failed to update site",
 			Err:     err,
 		}
 	}
