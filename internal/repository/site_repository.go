@@ -9,6 +9,7 @@ import (
 
 type SiteRepository interface {
 	CreateSite(ctx context.Context, site *entities.Site) (*entities.Site, error)
+	GetSiteByID(ctx context.Context, id string) (*entities.Site, error)
 	UpdateSite(ctx context.Context, site *entities.Site) (*entities.Site, error)
 }
 
@@ -29,6 +30,21 @@ func (r *SiteRepo) CreateSite(ctx context.Context, site *entities.Site) (*entiti
 	if err != nil {
 		return nil, &RepositoryError{
 			Message: "failed to create site",
+			Err:     err,
+		}
+	}
+	return site, nil
+}
+
+func (r *SiteRepo) GetSiteByID(ctx context.Context, id string) (*entities.Site, error) {
+	query := "SELECT id, name, address, location FROM sites WHERE id = $1"
+	site := &entities.Site{}
+	row := r.db.QueryRowContext(ctx, query, id)
+
+	err := row.Scan(&site.ID, &site.Name, &site.Address, &site.Location)
+	if err != nil {
+		return nil, &RepositoryError{
+			Message: "failed to get site by id",
 			Err:     err,
 		}
 	}
