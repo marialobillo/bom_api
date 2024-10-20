@@ -11,6 +11,7 @@ type SiteRepository interface {
 	CreateSite(ctx context.Context, site *entities.Site) (*entities.Site, error)
 	GetSiteByID(ctx context.Context, id string) (*entities.Site, error)
 	UpdateSite(ctx context.Context, site *entities.Site) (*entities.Site, error)
+	DeleteSite(ctx context.Context, id string) error
 }
 
 type SiteRepo struct {
@@ -61,4 +62,16 @@ func (r *SiteRepo) UpdateSite(ctx context.Context, site *entities.Site) (*entiti
 		}
 	}
 	return site, nil
+}
+
+func (r *SiteRepo) DeleteSite(ctx context.Context, id string) error {
+	query := "DELETE FROM sites WHERE id = $1"
+	_, err := r.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return &RepositoryError{
+			Message: "failed to delete site",
+			Err:     err,
+		}
+	}
+	return nil
 }
