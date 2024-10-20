@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -16,6 +17,7 @@ import (
 type MockSiteService struct {
 	CreateSiteFn func(ctx context.Context, site *entities.Site) (*entities.Site, error)
 	UpdateSiteFn func(ctx context.Context, id string, site *entities.Site) (*entities.Site, error)
+	DeleteSiteFn func(ctx context.Context, id string) error
 }
 
 func (m *MockSiteService) CreateSite(ctx context.Context, site *entities.Site) (*entities.Site, error) {
@@ -24,6 +26,10 @@ func (m *MockSiteService) CreateSite(ctx context.Context, site *entities.Site) (
 
 func (m *MockSiteService) UpdateSite(ctx context.Context, id string, site *entities.Site) (*entities.Site, error) {
 	return m.UpdateSiteFn(ctx, id, site)
+}
+
+func (m *MockSiteService) DeleteSite(ctx context.Context, id string) error {
+	return m.DeleteSiteFn(ctx, id)
 }
 
 func TestCreateSite(t *testing.T) {
@@ -83,3 +89,40 @@ func TestUpdateSite(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 }
+
+func TestDeleteSite(t *testing.T) {
+    app := fiber.New()
+    mockService := &MockSiteService{
+        DeleteSiteFn: func(ctx context.Context, id string) error {
+            if id == "1" {
+                return nil
+            }
+            return errors.New("site not found")
+        },
+    }
+    handler := NewSiteHandler(mockService)
+    app.Delete("/sites/:id", handler.DeleteSite)
+
+    t.Run("Successful site deletion", func(t *testing.T) {
+        req := httptest.NewRequest(http.MethodDelete, "/sites/1", nil)
+        resp, _ := app.Test(req)
+
+        assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+        var body map[string]string
+        json.NewDecoder(resp.Body).Decode(&body)
+        assert.Equal(t, "Site deleted successfully", body["message"])
+    })
+
+    t.Run("Failed site deletion with site not found", func(t *testing.T) {
+        req := httptest.NewRequest(http.MethodDelete, "/sites/999", nil)
+        resp, _ := app.Test(req)
+
+        assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+
+        var body map[string]string
+        json.NewDecoder(resp.Body).Decode(&body)
+        assert.Equal(t, "site not found", body["error"])
+    })
+}
+

@@ -64,3 +64,19 @@ func (h *SiteHandler) UpdateSite(c *fiber.Ctx) error {
 		"data":    updatedSite,
 	})
 }
+
+func (h *SiteHandler) DeleteSite(c *fiber.Ctx) error {
+	id := c.Params("id")
+	ctx := c.Context()
+
+	err := h.service.DeleteSite(ctx, id)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.Status(http.StatusOK).JSON(fiber.Map{
+		"message": "Site deleted successfully",
+	})
+}
