@@ -11,7 +11,7 @@ import (
 type SiteService interface {
 	CreateSite(ctx context.Context, site *entities.Site) (*entities.Site, error)
 	UpdateSite(ctx context.Context, id string, site *entities.Site) (*entities.Site, error)
-	
+	DeleteSite(ctx context.Context, id string) error
 }
 
 type siteService struct {
@@ -50,4 +50,15 @@ func (s *siteService) UpdateSite(ctx context.Context, id string, site *entities.
 	}
 
 	return updatedSite, nil
+}
+
+func (s *siteService) DeleteSite(ctx context.Context, id string) error {
+	existingSite, err := s.repo.GetSiteByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if existingSite == nil {
+		return errors.New("site not found")
+	}
+	return s.repo.DeleteSite(ctx, id)
 }
